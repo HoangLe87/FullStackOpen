@@ -1,5 +1,5 @@
 const Header = props => <h1> {props.id}</h1>;
-const Part = props => <p>{props.name} {props.points}</p>
+const Part = props => <p>{props.name} {props.exercises}</p>
 const Content = props => {
   return (
     <div>
