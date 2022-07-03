@@ -1,6 +1,7 @@
-export const Persons = ({searchResults}) => {
+
+export const Persons = ({searchResult,deleteName}) => {
   return (
-    searchResults.map(searchResult => <div key={searchResult.name}>{searchResult.name} {searchResult.number}</div>)
+    <li>{searchResult.name} {searchResult.number} <button type='button' onClick={deleteName}>delete</button></li>
   )
 }
 
