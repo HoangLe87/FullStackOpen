@@ -8,7 +8,13 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [search,setSearch] =useState(true)
   const [searchValue,setSearchValue] =useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
   
+  const Notification = () => {
+    if (errorMessage===null) return null
+    else return <div className='error'>{errorMessage}</div>
+  }
+
   useEffect(()=>{
     connection.getAll().then(initialData => setPersons(initialData))
   }, [])
@@ -43,6 +49,8 @@ const App = () => {
     else {
       connection.create(newNameObject).then(results=>setPersons(persons.concat(results)))
       setNewName('someone else?')
+      setErrorMessage(`Succesfully added ${newNameObject.name}`)
+      setTimeout(()=> setErrorMessage(null),3000)
     }
   }
 
@@ -62,15 +70,29 @@ const App = () => {
     }
   }
 
+  const Footer = () => {
+    const footerStyle = {
+      color: 'green',
+      fontStyle: 'italic',
+      fontSize: 16
+    }
+    return <div style={footerStyle}>
+      <br/>
+      <em>Created by Hoang 2022</em>
+    </div>
+  }
+
   const searchResults  = search ? persons.filter(person => person.name.toLowerCase().startsWith(searchValue.toLowerCase())) : persons
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h2 className='test'>Phonebook</h2>
+      <Notification errorMessage={errorMessage}/>
       <Filter handleSearch={handleSearch}/>
       <h2>add a new </h2>
       <PersonForm addNewName={addNewName} newName={newName} handleInputField={handleInputField} hadleInputNumber={hadleInputNumber}/>
       <h2>Numbers</h2>
       {searchResults.map(searchResult => <Persons key={searchResult.id} searchResult={searchResult} deleteName={()=>deleteName(searchResult.id)}/>)}
+      <Footer />
     </div>
   )
 }
