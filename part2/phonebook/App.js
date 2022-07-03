@@ -1,17 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {Filter, PersonForm, Persons} from './components'
+import connection from './services'
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('type something...')
   const [newNumber, setNewNumber] = useState('')
   const [search,setSearch] =useState(true)
   const [searchValue,setSearchValue] =useState('')
+  
+  useEffect(()=>{
+    connection.getAll().then(initialData => setPersons(initialData))
+  }, [])
+
   const handleInputField = (e) => {
     setNewName(e.target.value)
   }
@@ -34,19 +35,33 @@ const App = () => {
       name: newName,
       number: newNumber
     }
-    if (!duplicateCheck()) {
-      setPersons(persons.concat(newNameObject))
-      setNewName('someone else?') }
+    if (duplicateCheck()) {
+      const findName = persons.find(person=>person.name===newName)
+      const changedName = {...findName, number: newNumber}
+      connection.update(findName.id,changedName).then(result => setPersons(persons.map(person=> person.id != findName.id ? person : changedName)))
+    } 
+    else {
+      connection.create(newNameObject).then(results=>setPersons(persons.concat(results)))
+      setNewName('someone else?')
+    }
   }
 
   const duplicateCheck = () => {
     for (let i of persons) {
       if (i.name.includes(newName)) {
-        alert(`${newName} is already added to the phonebook`)
+        alert(`${newName} is already added to the phonebook, replace the old number with a new one?`)
         return true
       }
     }
   }
+
+  const deleteName = (id) => {
+    const nameObject = persons.find(person => person.id===id)
+    if (window.confirm(`delete ${nameObject.name}?`)) {
+      connection.deletePerson(id).then(x => setPersons(persons.filter(person=>person.id!=id)))
+    }
+  }
+
   const searchResults  = search ? persons.filter(person => person.name.toLowerCase().startsWith(searchValue.toLowerCase())) : persons
   return (
     <div>
@@ -55,7 +70,7 @@ const App = () => {
       <h2>add a new </h2>
       <PersonForm addNewName={addNewName} newName={newName} handleInputField={handleInputField} hadleInputNumber={hadleInputNumber}/>
       <h2>Numbers</h2>
-      <Persons searchResults={searchResults}/>
+      {searchResults.map(searchResult => <Persons key={searchResult.id} searchResult={searchResult} deleteName={()=>deleteName(searchResult.id)}/>)}
     </div>
   )
 }
