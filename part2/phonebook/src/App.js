@@ -1,26 +1,23 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Filter from './Components/Filter'
 import PersonFrom from './Components/PersonForm'
 import Persons from './Components/Persons'
+import axios from 'axios'
 
 
 const App = () => {
   const [name, setName] = useState('Martin Fowler')
   const [number, setNumber] = useState('0000')
-  const [phoneBook, setPhoneBook] = useState([
-    {
-      id:0,
-      name:'test0',
-      number: 8888,
-    },
-    {
-      id:1,
-      name:'test1',
-      number: 7777,
-    }
-  ])
+  const [phoneBook, setPhoneBook] = useState([])
   const [filter, setFilter] = useState('')
+
+  useEffect(()=>{
+    let fetchData = (async() => {
+      let promise = await axios.get('http://localhost:3001/persons')
+      setPhoneBook(promise.data)
+    })()
+  },[])
 
   const nameChange = (e) => {
     setName(e.target.value)
