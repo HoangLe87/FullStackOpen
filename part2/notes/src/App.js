@@ -11,39 +11,40 @@ function App() {
     ? allNotes
     : allNotes.filter(i=>i.important===true)
 
-  const saveNote = (e) => {
+  const saveNote = async(e) => {
     e.preventDefault()
-    let random = Math.random()
     let newNoteObject = {
-      id: allNotes.length,
       content: newNote,
-      important: (random>0.5)?true:false
     }
-    setAllNotes(allNotes.concat(newNoteObject))
+    let promise = await axios.post('/notes/', newNoteObject)
+    if (promise.status===200) {
+      setAllNotes(promise.data)
+    }
   }
 
   const inputUpdate = (e) => {
     setNewNote(e.target.value)
   }
 
-  const toggleImportant = () => {
+  const showAllNotes = () => {
     setShowAll(!showAll)
   }
 
   useEffect(()=> {
     let result = (async() => {
-      let promise = await axios.get('http://localhost:3001/notes')
+      let promise = await axios.get('/notes')
       setAllNotes(promise.data)
     })()
   }, [])
- 
+
 
   return (
     <div>
     <h1>Notes</h1>
-    <button onClick={toggleImportant}>{showAll?'show important':'show all'}</button>
+    <button onClick={showAllNotes}>{showAll?'show important':'show all'}</button>
     <ul>
-      {filteredNotes.map(i=><li key={i.id}>{i.content}</li>)}
+      {filteredNotes.map(i=><li key={i.id}>{i.content} 
+      <button>{i.important?'make not important':'make important'}</button></li>)}
     </ul>
     <form onSubmit={saveNote}>
       <input value={newNote} onChange={inputUpdate}/>

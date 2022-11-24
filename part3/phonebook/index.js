@@ -1,9 +1,7 @@
-const { response, request } = require('express')
 const express = require('express')
-const app = express()
+const cors = require('cors')
 
-app.use(express.json())
-persons = [
+let people = [
     { 
       "id": 1,
       "name": "Arto Hellas", 
@@ -26,50 +24,72 @@ persons = [
     }
 ]
 
-app.get('/api/persons',(req,res) => {
-    res.json(persons)
+const app = express()
+
+app.use(express.json())
+app.use(cors())
+
+app.get('/api/people', (request, response)=> {
+    response.json(people)
 })
 
-app.get('/info', (req, res)=> {
-    res.send(
-        `<div>Phonebook has ${persons.length} people</div>
-        ${new Date()}`)
+app.get('/info', (request, response)=> {
+    response.send(
+        `<div>Phonebook has info for ${people.length} people</br></br>
+        ${new Date()}
+        </div>`
+    )
 })
 
-app.get('/api/persons/:id', (req,res)=> {
-    const id = Number(req.params.id)
-    const personId = persons.find(x => x.id===id)
-    if (personId)
-        res.json(personId)
-    else
-        res.status(404).send('This person does not exist')
-})
-
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(note => note.id !== id)
-    res.status(204).end()
-  })
-
-const generateId = () => Math.floor(Math.random()*100)
-
-app.post('/api/persons', (request, response)=> {
-    const body = request.body
-    if (!(body.name && body.number)) {
-        response.status(400).json({error:'missing content'})
-    } else if (persons.find(person=>person.name===body.name)) {
-        response.status(400).json({error:'name must be unique'})
+app.get('/api/people/:id', (request, response)=> {
+    let id = Number(request.params.id)
+    person = people.find(i=>i.id===id)
+    if (person) {
+        response.json(person)
+    } else {
+        response.statusMessage = 'id not found!'
+        response.status(404).end()
     }
-    const newPerson = {
-        id: generateId(),
-        name: body.name,
-        number: body.number
-    }
-    persons = persons.concat(newPerson)
-    response.json(newPerson)
 })
+
+app.delete('/api/people/:id', (request, response)=> {
+    let id = Number(request.params.id)
+    people = people.filter(i=>i.id !== id)
+    response.status(204).end()
+})
+
+app.post('/api/people/', (request, response)=> {
+    let id = people.length>0
+        ? Math.max(...people.map(i=>i.id))+1
+        : 0
+
+    const person = {
+        id: id,
+        name: request.body.name,
+        number: request.body.number,
+    }
+    if (!request.body.name) {
+        response.statusMessage='name is missing'
+        return response.status(204).end()
+    }
+    else if (!request.body.number) {
+        response.statusMessage='number is missing'
+        return response.status(204).end()
+    }
+    
+    else if (people.find(i=>i.name===request.body.name)) {
+        response.statusMessage='name must be unique'
+        return response.status(204).end()
+    }
+    else {
+        people = people.concat(person)
+        response.json(person)
+    }
+})
+
 
 const PORT = 3001
+
 app.listen(PORT, ()=> {
     console.log(`server running on port ${PORT}`)
 })

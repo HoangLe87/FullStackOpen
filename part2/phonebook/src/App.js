@@ -14,7 +14,7 @@ const App = () => {
 
   useEffect(()=>{
     let fetchData = (async() => {
-      let promise = await axios.get('http://localhost:3001/persons')
+      let promise = await axios.get('http://localhost:3001/api/people')
       setPhoneBook(promise.data)
     })()
   },[])
@@ -41,16 +41,15 @@ const App = () => {
 
   const add = (e) => {
     e.preventDefault()
-    if (phoneBook.find(i=>i.name===name)) {
-      alert(`${name} is already in added to the phonebook`)
-    } else {
-      let newContactObject = {
-        id: phoneBook.length,
-        name: name,
-        number: number,
-      }
-      setPhoneBook(phoneBook.concat(newContactObject))
+    let newContactObject = {
+      name: name,
+      number: number,
     }
+    let postRequestFunc = (async() => {
+      let postRequest = await axios.post('/api/people/', newContactObject)
+      setPhoneBook(phoneBook.concat(postRequest.data))
+      console.log(postRequest.data)
+    })()
   }
 
   return (
